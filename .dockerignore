@@ -1,8 +1,23 @@
-venv
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.env
-.DS_Store
-.git
+venv  
+# Ignore local Python virtual environments (saves space, not needed in container)
+
+__pycache__  
+# Ignore Python bytecode cache directories
+
+*.pyc  
+# Ignore compiled Python files (cache)
+
+*.pyo  
+# Ignore optimized Python compiled files
+
+*.pyd  
+# Ignore Python dynamic library files (Windows)
+
+.env  
+# Ignore environment variable files (they might contain secrets)
+
+.DS_Store  
+# Ignore macOS-specific system files that are useless in the container
+
+.git  
+# Ignore Git metadata (we don't need source control history inside the container)
