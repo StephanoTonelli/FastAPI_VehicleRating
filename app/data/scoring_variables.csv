@@ -1,0 +1,4 @@
+variable,Toyota_Camry,Honda_Civic,Ford_F150
+age_weight,1.7,1.6,2.0
+mileage_bonus,0.015,0.012,0.008
+engine_size_bonus,0.1,0.05,0.2

@@ -19,7 +19,8 @@ vehicle_scoring_api/
 │   └── routers/
 │       └── scoring.py  # API routes for scoring operations (single and batch)
 ├── app/data/
-│   └── api_keys.csv    # CSV file containing client_name, api_key, expiration_date
+│   ├── api_keys.csv    # CSV file containing client_name, api_key, expiration_date
+│   └── scoring_variables.csv # CSV file defining scoring variables per make and model
 ├── requirements.txt    # Python dependencies list
 └── Dockerfile           # Docker container configuration
 ```
@@ -42,6 +43,7 @@ vehicle_scoring_api/
 3. **Access the API Documentation**
    - Open your browser and navigate to:
       http://127.0.0.1:8000/docs
+
    - Use the Swagger UI page to **test** all available endpoints easily by sending requests directly from the browser.
    - **Authorization:** Click on the "Authorize" button to input your `X-API-Key` before testing endpoints.
 
@@ -62,7 +64,6 @@ vehicle_scoring_api/
 3. **Access the API**
    - Navigate to:
       http://localhost/docs
-
    - Use the Swagger UI to interact with and test the API endpoints inside the container.
 
 ---
@@ -73,7 +74,7 @@ vehicle_scoring_api/
 |------------------------|---------------------------------|-------------------------------------|
 | **API Layer**          | `main.py`, `routers/scoring.py` | Exposes REST API endpoints          |
 | **Schema Layer**       | `schemas.py`                    | Validates and structures data       |
-| **Business Logic Layer** | `crud.py`                     | Implements the in-memory scoring rules |
+| **Business Logic Layer** | `crud.py`                     | Implements the in-memory scoring rules based on CSV variables |
 | **Security Layer**     | `dependencies.py`, `data/api_keys.csv` | Manages API key authentication |
 | **Infrastructure**     | `Dockerfile`, `.dockerignore`   | Prepares the app for containerized deployment |
 
@@ -81,10 +82,38 @@ vehicle_scoring_api/
 
 ## Notes
 
-- Scoring rules are **hardcoded** for now in `crud.py` but the structure allows easy future upgrades to database-driven scoring.
+- Scoring rules are dynamically loaded from `app/data/scoring_variables.csv`, based on vehicle make and model.
+- No default values are used: if the make and model combination is not found, an error will be raised.
 - API Key authentication is managed via a **CSV file (`api_keys.csv`)**.
 - OpenAPI documentation is automatically generated at `/docs` when you run the app.
 - **Reminder:** Scoring calculations are **artificial and intended only for demo/testing purposes**.
+
+---
+
+## How the Scoring System Works
+
+1. **CSV-Driven Variables**
+   - The `scoring_variables.csv` file defines scoring multipliers for each vehicle make and model.
+   - Example format:
+     ```csv
+     variable,Toyota_Camry,Honda_Civic,Ford_F150
+     age_weight,1.7,1.6,2.0
+     mileage_bonus,0.015,0.012,0.008
+     engine_size_bonus,0.1,0.05,0.2
+     ```
+
+2. **When scoring a vehicle:**
+   - The system looks for a column matching `Make_Model` (e.g., `Toyota_Camry`).
+   - If found, it applies the corresponding weights to:
+     - Age of the vehicle
+     - Mileage (rewarding lower mileage)
+     - Engine size
+   - If not found, a 422 error is raised.
+
+3. **Calculation Example:**
+   - Age contribution = (Current Year - Vehicle Year) * `age_weight`
+   - Mileage contribution = (100,000 - Mileage) * `mileage_bonus`
+   - Engine size contribution = Engine Size * `engine_size_bonus`
 
 ---
 
@@ -94,6 +123,7 @@ vehicle_scoring_api/
    - Method: `POST`
    - URL for single scoring:
       http://127.0.0.1:8000/score/single
+
 
 2. **Set Headers**
    - Key: `Content-Type`, Value: `application/json`
@@ -114,7 +144,7 @@ vehicle_scoring_api/
 4. **Send the Request**
    - You should receive a JSON response with the vehicle's score.
 
-**Important:** Make sure your `api_keys.csv` contains the API key you are using and that the expiration date has not passed.
+**Important:** Make sure your `api_keys.csv` contains the API key you are using and that the expiration date has not passed. Also ensure the `make_model` exists in the `scoring_variables.csv`.
 
 ---
 
