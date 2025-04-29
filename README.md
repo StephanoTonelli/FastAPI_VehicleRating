@@ -14,8 +14,8 @@ vehicle_scoring_api/
 ├── app/
 │   ├── main.py        # FastAPI application setup and router inclusion
 │   ├── schemas.py     # Pydantic models for API request and response validation
-│   ├── crud.py         # Business logic for vehicle scoring
-│   ├── dependencies.py # API key authentication and security logic
+│   ├── scoring_logic.py         # Business logic for vehicle scoring
+│   ├── authentication.py # API key authentication and security logic
 │   └── routers/
 │       └── scoring.py  # API routes for scoring operations (single and batch)
 ├── app/data/
@@ -74,8 +74,8 @@ vehicle_scoring_api/
 |------------------------|---------------------------------|-------------------------------------|
 | **API Layer**          | `main.py`, `routers/scoring.py` | Exposes REST API endpoints          |
 | **Schema Layer**       | `schemas.py`                    | Validates and structures data       |
-| **Business Logic Layer** | `crud.py`                     | Implements the in-memory scoring rules based on CSV variables |
-| **Security Layer**     | `dependencies.py`, `data/api_keys.csv` | Manages API key authentication |
+| **Business Logic Layer** | `scoring_logic.py`                     | Implements the in-memory scoring rules based on CSV variables |
+| **Security Layer**     | `authentication.py`, `data/api_keys.csv` | Manages API key authentication |
 | **Infrastructure**     | `Dockerfile`, `.dockerignore`   | Prepares the app for containerized deployment |
 
 ---
