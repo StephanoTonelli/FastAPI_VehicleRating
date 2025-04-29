@@ -1,8 +1,15 @@
 from fastapi import APIRouter, HTTPException  # Importing APIRouter to create route groups, HTTPException for handling errors
 from typing import List  # Importing List type for type annotations
 from .. import crud, schemas  # Importing the 'crud' module for business logic and 'schemas' for data validation and structure
+from fastapi import Depends
+from ..dependencies import verify_api_key
 
-router = APIRouter(prefix="/score", tags=["scoring"])  # Initializing an API router with a URL prefix "/score" and tagging it as "scoring"
+router = APIRouter(
+    prefix="/score",
+    tags=["scoring"],
+    dependencies=[Depends(verify_api_key)]  # <-- Require API Key for ALL routes in this router
+) # Initializing an API router with a URL prefix "/score" and tagging it as "scoring"
+
 
 @router.post(
     "/single",
