@@ -20,6 +20,8 @@ def score_single(vehicle: schemas.VehicleData):  # Defining the handler function
     score = scoring_logic.calculate_score_from_data(vehicle)  # Calling the business logic function to calculate the score for the input vehicle
     return schemas.VehicleScore(**vehicle.dict(), score=score)  # Returning a VehicleScore object by merging the input vehicle data with the calculated score
 
+
+"""
 @router.post(
     "/batch",
     response_model=schemas.BatchResponse,
@@ -31,3 +33,4 @@ def score_batch(req: schemas.BatchRequest):  # Defining the handler function tha
         sc = scoring_logic.calculate_score_from_data(v)  # Calculating the score for each individual vehicle
         results.append(schemas.VehicleScore(**v.dict(), score=sc))  # Appending a new VehicleScore object to the results list
     return schemas.BatchResponse(results=results)  # Returning the batch of scored vehicles encapsulated inside a BatchResponse
+"""

@@ -12,17 +12,19 @@ This project provides endpoints to score individual or batch vehicle data based 
 ```
 vehicle_scoring_api/
 ├── app/
-│   ├── main.py        # FastAPI application setup and router inclusion
-│   ├── schemas.py     # Pydantic models for API request and response validation
-│   ├── scoring_logic.py         # Business logic for vehicle scoring
-│   ├── authentication.py # API key authentication and security logic
+│   ├── main.py            # FastAPI application setup, request logging middleware, and router inclusion
+│   ├── schemas.py         # Pydantic models for API request and response validation
+│   ├── scoring_logic.py   # Business logic for vehicle scoring
+│   ├── authentication.py  # API key authentication and security logic
+│   ├── models_log.py      # SQLAlchemy model for request log entries
 │   └── routers/
-│       └── scoring.py  # API routes for scoring operations (single and batch)
+│       └── scoring.py     # API routes for scoring operations (single and batch)
 ├── app/data/
-│   ├── api_keys.csv    # CSV file containing client_name, api_key, expiration_date
+│   ├── api_keys.csv       # CSV file containing client_name, api_key, expiration_date
 │   └── scoring_variables.csv # CSV file defining scoring variables per make and model
-├── requirements.txt    # Python dependencies list
-└── Dockerfile           # Docker container configuration
+├── logs.db                # SQLite database that stores request logs (auto-generated)
+├── requirements.txt       # Python dependencies list
+└── Dockerfile             # Docker container configuration
 ```
 
 ---
@@ -42,8 +44,8 @@ vehicle_scoring_api/
 
 3. **Access the API Documentation**
    - Open your browser and navigate to:
-      http://127.0.0.1:8000/docs
-
+     http://127.0.0.1:8000/docs
+     
    - Use the Swagger UI page to **test** all available endpoints easily by sending requests directly from the browser.
    - **Authorization:** Click on the "Authorize" button to input your `X-API-Key` before testing endpoints.
 
@@ -63,20 +65,22 @@ vehicle_scoring_api/
 
 3. **Access the API**
    - Navigate to:
-      http://localhost/docs
+     http://localhost/docs
+     
    - Use the Swagger UI to interact with and test the API endpoints inside the container.
 
 ---
 
 ## System Overview
 
-| Layer                  | Components                     | Purpose                             |
-|------------------------|---------------------------------|-------------------------------------|
-| **API Layer**          | `main.py`, `routers/scoring.py` | Exposes REST API endpoints          |
-| **Schema Layer**       | `schemas.py`                    | Validates and structures data       |
-| **Business Logic Layer** | `scoring_logic.py`                     | Implements the in-memory scoring rules based on CSV variables |
+| Layer                  | Components                          | Purpose                             |
+|------------------------|--------------------------------------|-------------------------------------|
+| **API Layer**          | `main.py`, `routers/scoring.py`     | Exposes REST API endpoints          |
+| **Schema Layer**       | `schemas.py`                         | Validates and structures data       |
+| **Business Logic Layer** | `scoring_logic.py`                | Implements the in-memory scoring rules based on CSV variables |
 | **Security Layer**     | `authentication.py`, `data/api_keys.csv` | Manages API key authentication |
-| **Infrastructure**     | `Dockerfile`, `.dockerignore`   | Prepares the app for containerized deployment |
+| **Logging Layer**      | `models_log.py`, `LoggingMiddleware`, `logs.db` | Logs all incoming requests including client name, response, status, and headers |
+| **Infrastructure**     | `Dockerfile`, `.dockerignore`       | Prepares the app for containerized deployment |
 
 ---
 
@@ -84,7 +88,9 @@ vehicle_scoring_api/
 
 - Scoring rules are dynamically loaded from `app/data/scoring_variables.csv`, based on vehicle make and model.
 - No default values are used: if the make and model combination is not found, an error will be raised.
-- API Key authentication is managed via a **CSV file (`api_keys.csv`)**.
+- API Key authentication is managed via a **CSV file (`api_keys.csv`)**, and includes the client's name.
+- The `client_name` is also logged alongside each request for auditing.
+- Request logs are automatically recorded to `logs.db`, including timestamp, status code, headers, response body (truncated), and client name.
 - OpenAPI documentation is automatically generated at `/docs` when you run the app.
 - **Reminder:** Scoring calculations are **artificial and intended only for demo/testing purposes**.
 
@@ -122,8 +128,7 @@ vehicle_scoring_api/
 1. **Set Up Your Request**
    - Method: `POST`
    - URL for single scoring:
-      http://127.0.0.1:8000/score/single
-
+     http://127.0.0.1:8000/score/single
 
 2. **Set Headers**
    - Key: `Content-Type`, Value: `application/json`
@@ -145,6 +150,33 @@ vehicle_scoring_api/
    - You should receive a JSON response with the vehicle's score.
 
 **Important:** Make sure your `api_keys.csv` contains the API key you are using and that the expiration date has not passed. Also ensure the `make_model` exists in the `scoring_variables.csv`.
+
+---
+
+## How to Inspect Logs in `logs.db`
+
+### Option 1: DB Browser for SQLite
+- Download: https://sqlitebrowser.org/
+- Open `logs.db`
+- Navigate to `Browse Data` → Table: `request_logs`
+
+### Option 2: SQLite CLI
+```bash
+sqlite3 logs.db
+.tables
+SELECT * FROM request_logs ORDER BY timestamp DESC;
+.exit
+```
+
+### Option 3: View from Python
+```python
+import sqlite3
+import pandas as pd
+
+conn = sqlite3.connect("logs.db")
+df = pd.read_sql_query("SELECT * FROM request_logs ORDER BY timestamp DESC", conn)
+print(df.head())
+```
 
 ---
 

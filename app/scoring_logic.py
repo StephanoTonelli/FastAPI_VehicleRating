@@ -13,7 +13,9 @@ SCORING_VARIABLES_FILE = os.path.join(BASE_DIR, "app", "data", "scoring_variable
 # Load the scoring variables CSV into a DataFrame
 try:
     scoring_variables_df = pd.read_csv(SCORING_VARIABLES_FILE)
-    print(f"Scoring Variables Loaded:\n{scoring_variables_df}")  # Debug print
+    
+    #print(f"Scoring Variables Loaded:\n{scoring_variables_df}")  # DEBUG PRINT
+
 except Exception as e:
     print(f"Error loading scoring variables: {e}")
     scoring_variables_df = None  # In case of loading error
